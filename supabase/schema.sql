@@ -31,9 +31,9 @@ CREATE TABLE IF NOT EXISTS public.certificates (
     participant_id UUID NOT NULL REFERENCES public.participants(id) ON DELETE CASCADE,
     participant_name TEXT NOT NULL,
     participant_email TEXT NOT NULL,
-    workshop_name TEXT NOT NULL DEFAULT 'AI for Real Opportunities',
-    workshop_date DATE NOT NULL DEFAULT '2026-09-13',
-    location TEXT NOT NULL DEFAULT 'Aligarh, India',
+    workshop_name TEXT NOT NULL DEFAULT 'AI Website Building Workshop',
+    workshop_date DATE NOT NULL DEFAULT '2026-10-11',
+    location TEXT NOT NULL DEFAULT 'Aligarh, Uttar Pradesh, India',
     pdf_path TEXT,
     verification_url TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -46,7 +46,7 @@ CREATE INDEX IF NOT EXISTS certificates_participant_id_idx ON public.certificate
 CREATE INDEX IF NOT EXISTS certificates_email_idx ON public.certificates (LOWER(TRIM(participant_email)));
 
 -- ------------------------------------------------------------------------------
--- 2. SEQUENTIAL CERTIFICATE ID GENERATION (BRW-AIRO-0001, BRW-AIRO-0002, ...)
+-- 2. SEQUENTIAL CERTIFICATE ID GENERATION (BRW-AIWB-0001, BRW-AIWB-0002, ...)
 -- ------------------------------------------------------------------------------
 
 CREATE SEQUENCE IF NOT EXISTS public.certificate_id_seq START WITH 1 INCREMENT BY 1;
@@ -60,7 +60,7 @@ DECLARE
     formatted_id TEXT;
 BEGIN
     next_val := nextval('public.certificate_id_seq');
-    formatted_id := 'BRW-AIRO-' || LPAD(next_val::TEXT, 4, '0');
+    formatted_id := 'BRW-AIWB-' || LPAD(next_val::TEXT, 4, '0');
     RETURN formatted_id;
 END;
 $$;

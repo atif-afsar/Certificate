@@ -1,40 +1,49 @@
-# The BrandsWay Workshop Certificate System
+# Brandsway Skill Academy Certificate System
 
-Official production certificate issuance, verification, and management platform for **The BrandsWay Skill Academy** for the workshop **"AI for Real Opportunities"** (13 September 2026, Aligarh, India).
+Official production certificate issuance, verification, and management platform for **Brandsway Skill Academy** for the workshop **"AI Website Building Workshop"** (Sunday, 11 October 2026, Aligarh, Uttar Pradesh, India).
 
 ---
 
 ## 🌟 Key Features
 
 1. **Frictionless Participant Flow (< 30s)**:
-   - Participants scan the workshop QR code.
-   - Enter their registered Full Name and Email Address.
-   - Real-time validation against the eligible participant roster.
-   - Idempotent generation: Returns existing certificate if already generated (prevents duplicate `BRW-AIRO-XXXX` IDs).
+   - Participants scan the workshop QR code or visit `/certificate`.
+   - Enter their Full Name and Email Address.
+   - Real-time validation and instant issuance.
+   - Idempotent generation: Returns existing certificate if already generated (prevents duplicate IDs).
 
-2. **High-Resolution A4 Landscape PDF Engine**:
-   - Built with `pdf-lib` and high-density Canvas (300 DPI equivalent).
-   - Warm cream / parchment background, navy and gold borders, official The BrandsWay seal.
-   - Dynamic font-scaling for long names to eliminate overlap.
-   - Direct download and on-screen interactive preview.
+2. **High-Visibility Download & Success Screen (`/success`)**:
+   - Immediately displayed after form submission.
+   - Prominent **Download Certificate (PDF)** primary action button.
+   - **Open PDF in Tab** fallback for mobile devices.
+   - On-screen interactive certificate canvas preview.
+   - Direct verification link and one-click copy.
 
-3. **Public Tamper-Proof Verification**:
-   - Unique sequential Certificate IDs (`BRW-AIRO-0001`, `BRW-AIRO-0002`, etc.).
-   - Embedded QR code links directly to `/verify/:certificateId`.
-   - **Privacy Compliant**: Publicly displays verified awardee name, workshop date, location, and issuer seal. *Never* exposes participant email, phone number, or database internals.
-   - Public manual ID search box.
+3. **Tamper-Proof Verification (`/verify/:certificateId`)**:
+   - Unique sequential Certificate IDs (`BRW-AIWB-0001`, `BRW-AIWB-0002`, etc.) and backward compatibility with historical certificates (`BRW-AIRO-XXXX`).
+   - Embedded QR code on the certificate links directly to verification.
+   - **No Auto-Redirect / No Timer**: The verification page remains open stably so users, employers, or reviewers can inspect credentials without being redirected away.
+   - **Privacy Compliant**: Publicly displays verified awardee name, workshop title, date, location, and issuer seal. Never exposes email addresses or internal IDs.
 
-4. **Comprehensive Admin Dashboard**:
-   - Live metrics: Total Participants, Eligible Participants, Certificates Issued, Certificates Remaining.
-   - Search by name, email, or certificate ID.
-   - Filter by status (All, Issued, Pending, Ineligible).
-   - Bulk CSV Import (`name,email`) with duplicate detection and reporting.
+4. **Regal High-Resolution A4 Landscape PDF Engine**:
+   - Built with `pdf-lib` and high-density Canvas (2400 x 1680, 300 DPI equivalent).
+   - Luxury parchment background, midnight royal purple and metallic gold borders.
+   - Embossed 36-point radiant gold seal with official academy crest.
+   - Dynamic font-scaling for long participant names to eliminate overlap.
+   - Meaningful sanitized filename: `Brandsway-AI-Website-Building-Certificate-[ParticipantName].pdf`.
+
+5. **Comprehensive Admin Portal (`/admin`)**:
+   - Protected organizer login at `/admin/login`.
+   - Credentials: **`admin@brandsway.com`** / **`admin123`** (includes one-click "Fill Credentials" button).
+   - Live metrics: Total Participants, Eligible, Issued, Remaining.
+   - Search by name, email, or certificate ID with filter pills.
+   - Bulk CSV Import (`name,email`) with duplicate detection.
    - Participant Name Correction & Certificate Regeneration (preserving certificate ID).
-   - Toggle participant eligibility with single click.
+   - Instant PDF download and eligibility toggle.
 
-5. **Local Demo Mode / Live Supabase Mode**:
-   - Works immediately out of the box in Local Demo Mode with mock seed data.
-   - Automatically switches to live Supabase once `.env` credentials are configured.
+6. **Local Resilient Mode / Live Supabase Mode**:
+   - Works immediately out of the box in Local Resilient Mode with seed data.
+   - Connects to live Supabase once configured, with automatic fallback protection against network failures.
 
 ---
 
@@ -55,101 +64,18 @@ npm run dev
 ```
 Open your browser at `http://localhost:5173`.
 
-### 4. Demo Accounts & Seed Data
-In Local Demo Mode, you can test immediately with pre-loaded participants:
-- **Participant 1**: `Rahul Sharma` (`rahul@example.com`)
-- **Participant 2**: `Ayesha Khan` (`ayesha@example.com`)
-- **Participant 3**: `Mohammed Ali` (`mohammed@example.com`)
-- **Ineligible Participant**: `Bilal Ahmed` (`bilal@example.com`)
-- **Admin Portal**: Go to `/admin/login` and log in with:
-  - **Email**: `admin@brandsway.com`
-  - **Password**: `admin123`
+### 4. Admin Access & Credentials
+- **Admin Portal**: Go to `http://localhost:5173/admin/login`
+- **Organizer Email**: `admin@brandsway.com`
+- **Password**: `admin123`
 
 ---
 
-## 🗄️ Supabase Setup Guide
-
-### 1. Create a Supabase Project
-1. Go to [database.new](https://database.new) and create a new project.
-2. Under **Project Settings** -> **API**, copy:
-   - `Project URL`
-   - `anon public` key
-   - `service_role` secret key
-
-### 2. Configure Database Schema & RLS
-1. In the Supabase dashboard, open the **SQL Editor**.
-2. Open [supabase/schema.sql](file:///c:/Users/asus/Desktop/Certificate/supabase/schema.sql) from this repository.
-3. Paste the contents into the SQL Editor and click **Run**.
-   - This creates the `participants` and `certificates` tables.
-   - Creates the `certificate_id_seq` sequence.
-   - Installs the atomic `issue_or_get_certificate` and `verify_certificate_public` stored procedures.
-   - Configures Row Level Security (RLS) policies.
-   - Configures the `certificates` storage bucket.
-   - Seeds the initial registered participants.
-
-### 3. Set Environment Variables
-Copy `.env.example` to `.env`:
-```bash
-cp .env.example .env
-```
-Fill in your project credentials:
-```env
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOi...
-VITE_APP_URL=https://your-domain.com
-
-# Server-Side / Edge Function only (Do not commit)
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOi...
-```
-
-### 4. Deploy the Supabase Edge Function (Optional)
-If deploying the Edge Function for server-side generation:
-```bash
-supabase functions deploy generate-certificate --no-verify-jwt
-```
-
----
-
-## 🚢 Deployment Guide
-
-### Deploying to Vercel
-1. Push your repository to GitHub.
-2. Go to [Vercel](https://vercel.com) and click **Add New Project**.
-3. Import your GitHub repository.
-4. Set Build Command: `npm run build`
-5. Set Output Directory: `dist`
-6. Add Environment Variables:
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
-   - `VITE_APP_URL`
-7. Click **Deploy**.
-
-### Deploying to Netlify
-1. Connect your repository on [Netlify](https://netlify.com).
-2. Set Build Command: `npm run build`
-3. Set Publish Directory: `dist`
-4. For client-side routing, add a `_redirects` file in `public/` containing:
-   ```text
-   /*    /index.html   200
-   ```
-5. Add the environment variables and deploy.
-
----
-
-## 🔒 Security Architecture
-
-- **Zero Key Exposure**: `SUPABASE_SERVICE_ROLE_KEY` is strictly reserved for backend/server environments. The browser bundle only receives `VITE_SUPABASE_ANON_KEY`.
-- **Row Level Security (RLS)**: Public callers cannot directly insert, update, or arbitrarily read full participant rows.
-- **Privacy Protection**: The public `/verify` endpoint uses a Postgres security-definer function returning only public verification metadata. Participant emails, phone numbers, and internal UUIDs are strictly omitted.
-- **Idempotent Issuance**: Double submissions by participants reuse their existing unique certificate ID without creating duplicates.
-
----
-
-## 🏢 Brand Information
-- **Organization**: The BrandsWay Skill Academy
-- **Workshop**: AI for Real Opportunities
-- **Date**: 13 September 2026
-- **Location**: Aligarh, India
-- **Tagline**: Explore. Learn. Build. Grow.
-- **Brand Messaging**: Learn / Build / Grow • Same Skills / A Brighter / Tomorrow
-- **Footer**: People | Skills | Opportunities | A Brighter Tomorrow
+## 🏢 Workshop Information
+- **Organization**: Brandsway Skill Academy
+- **Workshop**: AI Website Building Workshop
+- **Certificate Type**: Certificate of Participation
+- **Date**: Sunday, 11 October 2026
+- **Location**: Aligarh, Uttar Pradesh, India
+- **Tagline**: Explore • Learn • Build • Grow
+- **Instructor**: Yasir Ali (Founder & Instructor)

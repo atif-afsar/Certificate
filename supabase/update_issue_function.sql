@@ -87,9 +87,9 @@ BEGIN
         v_participant.id,
         COALESCE(NULLIF(v_clean_name, ''), v_participant.name),
         v_participant.email,
-        'AI for Real Opportunities',
-        '2026-09-13',
-        'Aligarh, India',
+        'AI Website Building Workshop',
+        '2026-10-11',
+        'Aligarh, Uttar Pradesh, India',
         v_verification_url
     )
     RETURNING * INTO v_new_cert;

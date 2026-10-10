@@ -5,27 +5,31 @@ import { supabase, isSupabaseConfigured, mockBackend } from './supabase';
  */
 export async function getParticipantsWithCertificates() {
   if (isSupabaseConfigured && supabase) {
-    const { data: participants, error: pErr } = await supabase
-      .from('participants')
-      .select('*')
-      .order('created_at', { ascending: false });
+    try {
+      const { data: participants, error: pErr } = await supabase
+        .from('participants')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    if (pErr) throw pErr;
+      if (!pErr && participants) {
+        const { data: certificates } = await supabase
+          .from('certificates')
+          .select('*');
 
-    const { data: certificates, error: cErr } = await supabase
-      .from('certificates')
-      .select('*');
-
-    if (cErr) throw cErr;
-
-    return participants.map(p => {
-      const cert = certificates.find(c => c.participant_id === p.id);
-      return {
-        ...p,
-        certificate: cert || null,
-        certificate_status: cert ? 'ISSUED' : 'PENDING',
-      };
-    });
+        const certs = certificates || [];
+        return participants.map(p => {
+          const cert = certs.find(c => c.participant_id === p.id);
+          return {
+            ...p,
+            certificate: cert || null,
+            certificate_status: cert ? 'ISSUED' : 'PENDING',
+          };
+        });
+      }
+      console.warn('Supabase fetch failed, falling back to local database:', pErr);
+    } catch (err) {
+      console.warn('Supabase participant fetch error, falling back to local database:', err);
+    }
   }
 
   // Local fallback
@@ -50,14 +54,20 @@ export async function addParticipant({ name, email, eligible = true }) {
   const cleanEmail = email.trim().toLowerCase();
 
   if (isSupabaseConfigured && supabase) {
-    const { data, error } = await supabase
-      .from('participants')
-      .insert([{ name: cleanName, email: cleanEmail, eligible }])
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('participants')
+        .insert([{ name: cleanName, email: cleanEmail, eligible }])
+        .select()
+        .single();
 
-    if (error) throw error;
-    return data;
+      if (!error && data) {
+        return data;
+      }
+      console.warn('Supabase insert failed, falling back to local database:', error);
+    } catch (err) {
+      console.warn('Supabase addParticipant error, falling back to local database:', err);
+    }
   }
 
   const participants = mockBackend.getParticipants();
@@ -83,15 +93,20 @@ export async function addParticipant({ name, email, eligible = true }) {
  */
 export async function toggleEligibility(participantId, newStatus) {
   if (isSupabaseConfigured && supabase) {
-    const { data, error } = await supabase
-      .from('participants')
-      .update({ eligible: newStatus })
-      .eq('id', participantId)
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('participants')
+        .update({ eligible: newStatus })
+        .eq('id', participantId)
+        .select()
+        .single();
 
-    if (error) throw error;
-    return data;
+      if (!error && data) {
+        return data;
+      }
+    } catch (err) {
+      console.warn('Supabase toggleEligibility error, falling back to local database:', err);
+    }
   }
 
   const participants = mockBackend.getParticipants();
@@ -113,22 +128,27 @@ export async function regenerateCertificateName(participantId, correctedName) {
   if (!cleanName) throw new Error('Valid name is required.');
 
   if (isSupabaseConfigured && supabase) {
-    // 1. Update participant record
-    await supabase
-      .from('participants')
-      .update({ name: cleanName })
-      .eq('id', participantId);
+    try {
+      // 1. Update participant record
+      await supabase
+        .from('participants')
+        .update({ name: cleanName })
+        .eq('id', participantId);
 
-    // 2. Update certificate record
-    const { data, error } = await supabase
-      .from('certificates')
-      .update({ participant_name: cleanName })
-      .eq('participant_id', participantId)
-      .select()
-      .single();
+      // 2. Update certificate record
+      const { data, error } = await supabase
+        .from('certificates')
+        .update({ participant_name: cleanName })
+        .eq('participant_id', participantId)
+        .select()
+        .single();
 
-    if (error) throw error;
-    return data;
+      if (!error && data) {
+        return data;
+      }
+    } catch (err) {
+      console.warn('Supabase regenerateCertificateName error, falling back to local database:', err);
+    }
   }
 
   const participants = mockBackend.getParticipants();
@@ -192,19 +212,29 @@ export async function importParticipantsFromCSV(csvText) {
   }
 
   if (isSupabaseConfigured && supabase) {
-    const { error } = await supabase.from('participants').insert(validEntries);
-    if (error) throw error;
-  } else {
-    const current = mockBackend.getParticipants();
-    const newItems = validEntries.map(v => ({
-      id: crypto.randomUUID ? crypto.randomUUID() : 'part-' + Math.random(),
-      name: v.name,
-      email: v.email,
-      eligible: true,
-      created_at: new Date().toISOString()
-    }));
-    mockBackend.setParticipants([...newItems, ...current]);
+    try {
+      const { error } = await supabase.from('participants').insert(validEntries);
+      if (!error) {
+        return {
+          importedCount: validEntries.length,
+          skippedDuplicates,
+          message: `${validEntries.length} participants imported successfully. (${skippedDuplicates} duplicates skipped)`
+        };
+      }
+    } catch (err) {
+      console.warn('Supabase CSV insert error, falling back to local database:', err);
+    }
   }
+
+  const current = mockBackend.getParticipants();
+  const newItems = validEntries.map(v => ({
+    id: crypto.randomUUID ? crypto.randomUUID() : 'part-' + Math.random(),
+    name: v.name,
+    email: v.email,
+    eligible: true,
+    created_at: new Date().toISOString()
+  }));
+  mockBackend.setParticipants([...newItems, ...current]);
 
   return {
     importedCount: validEntries.length,

@@ -103,7 +103,7 @@ export const mockBackend = {
     // 3. Issue new
     let counter = getStored(STORAGE_KEY_COUNTER, 0) + 1;
     setStored(STORAGE_KEY_COUNTER, counter);
-    const certId = `BRW-AIRO-${String(counter).padStart(4, '0')}`;
+    const certId = `BRW-AIWB-${String(counter).padStart(4, '0')}`;
     const verificationUrl = `${baseUrl.replace(/\/$/, '')}/verify/${certId}`;
 
     const newCert = {
@@ -112,9 +112,9 @@ export const mockBackend = {
       participant_id: participant.id,
       participant_name: cleanName || participant.name,
       participant_email: participant.email,
-      workshop_name: 'AI for Real Opportunities',
-      workshop_date: '2026-09-13',
-      location: 'Aligarh, India',
+      workshop_name: 'AI Website Building Workshop',
+      workshop_date: 'Sunday, 11 October 2026',
+      location: 'Aligarh, Uttar Pradesh, India',
       verification_url: verificationUrl,
       created_at: new Date().toISOString()
     };
@@ -146,10 +146,10 @@ export const mockBackend = {
       valid: true,
       certificate_id: cert.certificate_id,
       participant_name: cert.participant_name,
-      workshop_name: cert.workshop_name,
-      workshop_date: cert.workshop_date,
-      location: cert.location,
-      issued_by: 'The BrandsWay Skill Academy',
+      workshop_name: cert.workshop_name || 'AI Website Building Workshop',
+      workshop_date: cert.workshop_date || 'Sunday, 11 October 2026',
+      location: cert.location || 'Aligarh, Uttar Pradesh, India',
+      issued_by: 'Brandsway Skill Academy',
       issue_date: cert.created_at,
       verification_url: cert.verification_url
     };

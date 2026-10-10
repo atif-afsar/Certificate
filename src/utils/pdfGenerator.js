@@ -2,12 +2,47 @@ import { PDFDocument } from 'pdf-lib';
 import QRCode from 'qrcode';
 
 /**
- * Renders the exact official The BrandsWay Certificate of Participation
- * faithful to the user's reference design at ultra-crisp resolution (2400 x 1600).
+ * Standard Workshop Details (PRD Section 1)
  */
-export async function renderCertificateCanvas(canvas, certData) {
+export const WORKSHOP_CONFIG = {
+  organization: 'Brandsway Skill Academy',
+  workshopTitle: 'AI Website Building Workshop',
+  certificateType: 'Certificate of Participation',
+  date: 'Sunday, 11 October 2026',
+  location: 'Aligarh, Uttar Pradesh, India',
+  instructor: 'Yasir Ali',
+  instructorRole: 'Founder & Instructor, Brandsway Skill Academy',
+  tagline: 'Explore • Learn • Build • Grow',
+};
+
+/**
+ * Sanitizes participant name for safe PDF filenames (PRD Section 3)
+ */
+export function getSanitizedPDFFilename(participantName = 'Participant') {
+  const cleanName = participantName
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/\s+/g, '-');
+  return `Brandsway-AI-Website-Building-Certificate-${cleanName || 'Participant'}.pdf`;
+}
+
+/**
+ * Renders an ultra-high resolution (2400 x 1680) luxury Certificate of Participation.
+ * Designed with regal guilloche borders, metallic gold accents, embossed seal,
+ * dynamic QR verification, and responsive font-scaling.
+ */
+export async function renderCertificateCanvas(canvas, certData = {}) {
+  // Wait for Google Fonts to be fully loaded to prevent font swap / metric shifts
+  if (typeof document !== 'undefined' && document.fonts && document.fonts.ready) {
+    try {
+      await document.fonts.ready;
+    } catch (e) {
+      // Proceed even if font ready promise rejects
+    }
+  }
+
   const width = 2400;
-  const height = 1600;
+  const height = 1680;
   canvas.width = width;
   canvas.height = height;
 
@@ -16,426 +51,455 @@ export async function renderCertificateCanvas(canvas, certData) {
 
   const {
     participantName = 'Participant Name',
-    certificateId = 'BRW-AIRO-0001',
-    workshopName = 'AI for Real Opportunities',
-    workshopDate = '13 SEPT 2026',
-    location = 'ALIGARH, INDIA',
-    verificationUrl = `${window.location.origin}/verify/${certificateId}`,
+    certificateId = 'BRW-AIWB-0001',
+    workshopName = WORKSHOP_CONFIG.workshopTitle,
+    workshopDate = WORKSHOP_CONFIG.date,
+    location = WORKSHOP_CONFIG.location,
+    verificationUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/verify/${certificateId}`,
   } = certData;
 
   // =========================================================================
-  // 1. BASE BACKGROUND: Luxury White Paper with Subtle Soft Warm Shading
+  // 1. BASE BACKGROUND & PARCHMENT TEXTURE
   // =========================================================================
-  const bgGrad = ctx.createLinearGradient(0, 0, width, height);
+  // Warm ivory / pearlescent parchment background
+  const bgGrad = ctx.createRadialGradient(width / 2, height / 2, 200, width / 2, height / 2, width * 0.75);
   bgGrad.addColorStop(0, '#FFFFFF');
-  bgGrad.addColorStop(0.5, '#FAF9F6');
-  bgGrad.addColorStop(1, '#F7F5F0');
+  bgGrad.addColorStop(0.5, '#FCFAF6');
+  bgGrad.addColorStop(0.85, '#F8F4EC');
+  bgGrad.addColorStop(1, '#F2ECE0');
   ctx.fillStyle = bgGrad;
   ctx.fillRect(0, 0, width, height);
 
-  // Subtle silk / paper grain diagonal sheen
-  const sheenGrad = ctx.createLinearGradient(0, 0, width, height * 0.7);
-  sheenGrad.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
-  sheenGrad.addColorStop(0.4, 'rgba(245, 243, 238, 0.4)');
-  sheenGrad.addColorStop(1, 'rgba(238, 235, 228, 0.2)');
+  // Subtle silk diagonal sheen
+  const sheenGrad = ctx.createLinearGradient(0, 0, width, height);
+  sheenGrad.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
+  sheenGrad.addColorStop(0.3, 'rgba(253, 248, 237, 0.3)');
+  sheenGrad.addColorStop(0.7, 'rgba(240, 233, 218, 0.2)');
+  sheenGrad.addColorStop(1, 'rgba(255, 255, 255, 0.5)');
   ctx.fillStyle = sheenGrad;
   ctx.fillRect(0, 0, width, height);
 
   // =========================================================================
-  // 2. RIGHT SIDE VERTICAL WATERMARK: "BRANDSWAY"
+  // 2. WATERMARK BACKGROUND BRANDING
   // =========================================================================
   ctx.save();
-  ctx.translate(width - 110, height / 2);
-  ctx.rotate(-Math.PI / 2);
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.font = '900 115px "Plus Jakarta Sans", sans-serif';
-  ctx.fillStyle = 'rgba(15, 23, 42, 0.04)';
+  ctx.font = '900 130px "Plus Jakarta Sans", sans-serif';
+  ctx.fillStyle = 'rgba(124, 58, 237, 0.025)';
   ctx.letterSpacing = '18px';
-  ctx.fillText('BRANDSWAY', 0, 0);
+  ctx.fillText('BRANDSWAY', width / 2, height / 2 - 40);
   ctx.restore();
 
   // =========================================================================
-  // 3. LEFT DECORATIVE DIAGONAL BANNER (Purple with Gold Trim)
+  // 3. REGAL ORNAMENTAL BORDERS & FRAMING
+  // =========================================================================
+  const outerMargin = 60;
+  const innerMargin = 95;
+  const borderW = width - outerMargin * 2;
+  const borderH = height - outerMargin * 2;
+
+  // Layer A: Deep Midnight Navy & Royal Purple Outer Border
+  ctx.save();
+  ctx.strokeStyle = '#1E1233';
+  ctx.lineWidth = 14;
+  ctx.strokeRect(outerMargin, outerMargin, borderW, borderH);
+
+  // Layer B: Main Metallic Gold Inset Border
+  const goldGrad = ctx.createLinearGradient(0, 0, width, height);
+  goldGrad.addColorStop(0, '#D4AF37');
+  goldGrad.addColorStop(0.25, '#F5DEB3');
+  goldGrad.addColorStop(0.5, '#D4AF37');
+  goldGrad.addColorStop(0.75, '#AA7C11');
+  goldGrad.addColorStop(1, '#D4AF37');
+
+  ctx.strokeStyle = goldGrad;
+  ctx.lineWidth = 5;
+  ctx.strokeRect(outerMargin + 16, outerMargin + 16, borderW - 32, borderH - 32);
+
+  // Layer C: Thin Pinstripe Inset
+  ctx.strokeStyle = 'rgba(212, 175, 55, 0.45)';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(innerMargin, innerMargin, width - innerMargin * 2, height - innerMargin * 2);
+
+  // Layer D: Geometric Filigree Corners (4 Corners)
+  const drawCornerFlourish = (x, y, flipX, flipY) => {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(flipX, flipY);
+    ctx.strokeStyle = goldGrad;
+    ctx.lineWidth = 2.5;
+
+    // Corner L-Bracket
+    ctx.beginPath();
+    ctx.moveTo(15, 60);
+    ctx.lineTo(15, 15);
+    ctx.lineTo(60, 15);
+    ctx.stroke();
+
+    // Corner Diamond Accent
+    ctx.fillStyle = '#D4AF37';
+    ctx.beginPath();
+    ctx.moveTo(28, 20);
+    ctx.lineTo(36, 28);
+    ctx.lineTo(28, 36);
+    ctx.lineTo(20, 28);
+    ctx.closePath();
+    ctx.fill();
+
+    // Corner Diagonal Accent
+    ctx.beginPath();
+    ctx.moveTo(0, 45);
+    ctx.lineTo(45, 0);
+    ctx.stroke();
+
+    ctx.restore();
+  };
+
+  drawCornerFlourish(innerMargin, innerMargin, 1, 1);
+  drawCornerFlourish(width - innerMargin, innerMargin, -1, 1);
+  drawCornerFlourish(innerMargin, height - innerMargin, 1, -1);
+  drawCornerFlourish(width - innerMargin, height - innerMargin, -1, -1);
+
+  ctx.restore();
+
+  // =========================================================================
+  // 4. TOP BRAND HEADER: BRANDSWAY SKILL ACADEMY
   // =========================================================================
   ctx.save();
-  // Purple Fold Shadow
-  ctx.shadowColor = 'rgba(15, 23, 42, 0.18)';
-  ctx.shadowBlur = 35;
-  ctx.shadowOffsetX = 12;
-
-  // Main Purple Polygon
-  ctx.beginPath();
-  ctx.moveTo(0, 240);
-  ctx.lineTo(240, 520);
-  ctx.lineTo(160, 640);
-  ctx.lineTo(0, 920);
-  ctx.closePath();
-
-  const purpleGrad = ctx.createLinearGradient(0, 240, 240, 640);
-  purpleGrad.addColorStop(0, '#1E1233');
-  purpleGrad.addColorStop(0.5, '#2A164D');
-  purpleGrad.addColorStop(1, '#180B2B');
-  ctx.fillStyle = purpleGrad;
-  ctx.fill();
-
-  // Outer Gold Line Trim
-  ctx.shadowColor = 'transparent';
-  ctx.strokeStyle = '#D4AF37';
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.moveTo(0, 240);
-  ctx.lineTo(240, 520);
-  ctx.lineTo(160, 640);
-  ctx.lineTo(0, 920);
-  ctx.stroke();
-
-  // Secondary Thin Gold Accent Line
-  ctx.strokeStyle = 'rgba(212, 175, 55, 0.5)';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.moveTo(0, 260);
-  ctx.lineTo(225, 520);
-  ctx.lineTo(145, 640);
-  ctx.lineTo(0, 900);
-  ctx.stroke();
-
-  // Text inside Left Ribbon: SAME SKILLS A BRIGHTER TOMORROW
   ctx.textAlign = 'center';
-  ctx.fillStyle = '#FFFFFF';
-  ctx.font = '700 15px "Plus Jakarta Sans", sans-serif';
-  ctx.letterSpacing = '4px';
-  ctx.fillText('SAME', 85, 470);
-  ctx.fillText('SKILLS', 85, 510);
-  ctx.fillText('A BRIGHTER', 85, 550);
-  ctx.fillText('TOMORROW', 85, 590);
+  ctx.textBaseline = 'top';
 
-  // Small gold separator under ribbon text
-  ctx.strokeStyle = '#D4AF37';
-  ctx.lineWidth = 2;
+  // Small Top Crest Badge / Emblem
+  const emblemY = 135;
+  ctx.fillStyle = '#7C3AED';
   ctx.beginPath();
-  ctx.moveTo(45, 620);
-  ctx.lineTo(125, 620);
-  ctx.stroke();
-  ctx.restore();
-
-  // =========================================================================
-  // 4. BOTTOM-RIGHT CORNER ACCENT (Purple with Gold Trim)
-  // =========================================================================
-  ctx.save();
-  ctx.beginPath();
-  ctx.moveTo(width - 240, height);
-  ctx.lineTo(width, height - 190);
-  ctx.lineTo(width, height);
-  ctx.closePath();
-
-  const brGrad = ctx.createLinearGradient(width - 240, height, width, height - 190);
-  brGrad.addColorStop(0, '#1E1233');
-  brGrad.addColorStop(1, '#2A164D');
-  ctx.fillStyle = brGrad;
+  ctx.arc(width / 2, emblemY, 22, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.strokeStyle = '#D4AF37';
-  ctx.lineWidth = 3.5;
-  ctx.beginPath();
-  ctx.moveTo(width - 240, height);
-  ctx.lineTo(width, height - 190);
+  ctx.lineWidth = 2.5;
   ctx.stroke();
 
-  ctx.strokeStyle = 'rgba(212, 175, 55, 0.5)';
+  // Inner star / letter in emblem
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = '800 18px "Plus Jakarta Sans", sans-serif';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('B', width / 2, emblemY);
+
+  // "BRANDSWAY SKILL ACADEMY"
+  ctx.textBaseline = 'top';
+  ctx.font = '800 24px "Plus Jakarta Sans", sans-serif';
+  ctx.fillStyle = '#0F172A';
+  ctx.letterSpacing = '5px';
+  ctx.fillText('BRANDSWAY SKILL ACADEMY', width / 2, 175);
+
+  // Subtitle / Tagline
+  ctx.font = '600 13px "Plus Jakarta Sans", sans-serif';
+  ctx.fillStyle = '#64748B';
+  ctx.letterSpacing = '3px';
+  ctx.fillText('EMPOWERING FUTURE-READY DIGITAL CRAFTSMANSHIP', width / 2, 210);
+
+  // Thin gold rule under academy header
+  ctx.strokeStyle = goldGrad;
   ctx.lineWidth = 1.5;
   ctx.beginPath();
-  ctx.moveTo(width - 215, height);
-  ctx.lineTo(width, height - 170);
+  ctx.moveTo(width / 2 - 160, 235);
+  ctx.lineTo(width / 2 + 160, 235);
   ctx.stroke();
   ctx.restore();
 
   // =========================================================================
-  // 5. TOP-LEFT BRAND LOGO: "The BrandsWay Skill Academy"
-  // =========================================================================
-  ctx.save();
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
-
-  // "The Brands" (Black)
-  ctx.font = '900 38px "Plus Jakarta Sans", sans-serif';
-  ctx.fillStyle = '#0F172A';
-  ctx.fillText('The Brands', 160, 110);
-
-  const tbWidth = ctx.measureText('The Brands').width;
-
-  // "Way" (Electric BrandsWay Purple)
-  ctx.fillStyle = '#7C3AED';
-  ctx.fillText('Way', 160 + tbWidth, 110);
-
-  // "Skill Academy" (Subtitle)
-  ctx.font = '700 17px "Plus Jakarta Sans", sans-serif';
-  ctx.fillStyle = '#475569';
-  ctx.letterSpacing = '1px';
-  ctx.fillText('Skill Academy', 160, 160);
-  ctx.restore();
-
-  // =========================================================================
-  // 6. TOP-RIGHT TEXT: "LEARN BUILD GROW"
-  // =========================================================================
-  ctx.save();
-  ctx.textAlign = 'right';
-  ctx.textBaseline = 'top';
-  ctx.font = '800 14px "Plus Jakarta Sans", sans-serif';
-  ctx.fillStyle = '#334155';
-  ctx.letterSpacing = '4px';
-  ctx.fillText('LEARN', width - 180, 105);
-  ctx.fillText('BUILD', width - 180, 130);
-  ctx.fillText('GROW', width - 180, 155);
-
-  // Gold line under GROW
-  ctx.strokeStyle = '#D4AF37';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(width - 235, 185);
-  ctx.lineTo(width - 180, 185);
-  ctx.stroke();
-  ctx.restore();
-
-  // =========================================================================
-  // 7. CENTER HEADER: "CERTIFICATE OF PARTICIPATION"
+  // 5. CERTIFICATE TITLE: "CERTIFICATE OF PARTICIPATION"
   // =========================================================================
   ctx.save();
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
   // "C E R T I F I C A T E   O F"
-  ctx.font = '700 22px "Cinzel", "Playfair Display", serif';
-  ctx.fillStyle = '#1E293B';
-  ctx.letterSpacing = '12px';
-  ctx.fillText('C E R T I F I C A T E   O F', width / 2, 270);
+  ctx.font = '700 22px "Cinzel", "Playfair Display", Georgia, serif';
+  ctx.fillStyle = '#334155';
+  ctx.letterSpacing = '14px';
+  ctx.fillText('C E R T I F I C A T E   O F', width / 2, 290);
 
-  // "PARTICIPATION" (Large Bold Serif with Rich Indigo/Purple Gradient)
-  const partGrad = ctx.createLinearGradient(width / 2, 310, width / 2, 420);
+  // "PARTICIPATION" in Grand Regal Indigo-Purple Gradient
+  const partGrad = ctx.createLinearGradient(width / 2, 320, width / 2, 430);
   partGrad.addColorStop(0, '#0F172A');
-  partGrad.addColorStop(0.5, '#1E1233');
-  partGrad.addColorStop(1, '#4C1D95');
+  partGrad.addColorStop(0.4, '#1E1B4B');
+  partGrad.addColorStop(1, '#581C87');
   ctx.fillStyle = partGrad;
-  ctx.font = '800 102px "Playfair Display", Georgia, serif';
+  ctx.font = '900 106px "Playfair Display", Georgia, serif';
   ctx.letterSpacing = '6px';
-  ctx.fillText('PARTICIPATION', width / 2, 360);
+  ctx.fillText('PARTICIPATION', width / 2, 380);
 
-  // "—— THIS IS TO CERTIFY THAT ——"
-  const lineY = 445;
-  const ruleLen = 220;
-  ctx.strokeStyle = '#94A3B8';
+  // "—— THIS IS PROUDLY PRESENTED TO ——"
+  const lineY = 460;
+  const ruleLen = 240;
+  ctx.strokeStyle = '#CBD5E1';
   ctx.lineWidth = 1.2;
 
   // Left rule line
   ctx.beginPath();
-  ctx.moveTo(width / 2 - 380, lineY);
-  ctx.lineTo(width / 2 - 380 + ruleLen, lineY);
+  ctx.moveTo(width / 2 - 420, lineY);
+  ctx.lineTo(width / 2 - 420 + ruleLen, lineY);
   ctx.stroke();
 
   // Right rule line
   ctx.beginPath();
-  ctx.moveTo(width / 2 + 380 - ruleLen, lineY);
-  ctx.lineTo(width / 2 + 380, lineY);
+  ctx.moveTo(width / 2 + 420 - ruleLen, lineY);
+  ctx.lineTo(width / 2 + 420, lineY);
   ctx.stroke();
 
-  ctx.font = '700 17px "Plus Jakarta Sans", sans-serif';
-  ctx.fillStyle = '#475569';
+  // Small gold diamond at center left & right
+  ctx.fillStyle = '#D4AF37';
+  ctx.fillRect(width / 2 - 420 + ruleLen - 3, lineY - 3, 6, 6);
+  ctx.fillRect(width / 2 + 420 - ruleLen - 3, lineY - 3, 6, 6);
+
+  ctx.font = '700 16px "Plus Jakarta Sans", sans-serif';
+  ctx.fillStyle = '#64748B';
   ctx.letterSpacing = '5px';
-  ctx.fillText('THIS IS TO CERTIFY THAT', width / 2, lineY);
+  ctx.fillText('THIS IS PROUDLY PRESENTED TO', width / 2, lineY);
   ctx.restore();
 
   // =========================================================================
-  // 8. PARTICIPANT NAME & PURPLE UNDERLINE (Centerpiece)
+  // 6. PARTICIPANT NAME (Centerpiece with Dynamic Auto-Scaling)
   // =========================================================================
   ctx.save();
   ctx.textAlign = 'center';
   ctx.textBaseline = 'bottom';
 
   const cleanName = (participantName || 'Participant Name').trim();
-  const nameY = 575;
+  const nameY = 595;
 
-  // Dynamic font sizing for short and long participant names
-  let nameSize = 62;
+  // Dynamic font sizing for long & short names to eliminate clipping
+  let nameSize = 66;
   ctx.font = `700 ${nameSize}px "Playfair Display", Georgia, serif`;
-  const maxNameWidth = 920;
-  while (ctx.measureText(cleanName).width > maxNameWidth && nameSize > 28) {
+  const maxNameWidth = 1050;
+  while (ctx.measureText(cleanName).width > maxNameWidth && nameSize > 26) {
     nameSize -= 2;
     ctx.font = `700 ${nameSize}px "Playfair Display", Georgia, serif`;
   }
 
-  // Dark rich slate gradient for name
-  const nameGrad = ctx.createLinearGradient(width / 2 - 250, 0, width / 2 + 250, 0);
+  // Deep obsidian slate gradient for name
+  const nameGrad = ctx.createLinearGradient(width / 2 - 280, 0, width / 2 + 280, 0);
   nameGrad.addColorStop(0, '#0F172A');
   nameGrad.addColorStop(0.5, '#1E1B4B');
   nameGrad.addColorStop(1, '#0F172A');
   ctx.fillStyle = nameGrad;
   ctx.fillText(cleanName, width / 2, nameY);
 
-  // Purple designated underline
-  ctx.strokeStyle = '#A78BFA';
-  ctx.lineWidth = 3;
+  // Ornamental Dual Gold-Purple Underline
+  ctx.strokeStyle = '#D4AF37';
+  ctx.lineWidth = 2.5;
   ctx.beginPath();
-  ctx.moveTo(width / 2 - 380, nameY + 12);
-  ctx.lineTo(width / 2 + 380, nameY + 12);
+  ctx.moveTo(width / 2 - 420, nameY + 14);
+  ctx.lineTo(width / 2 + 420, nameY + 14);
+  ctx.stroke();
+
+  // Center Diamond on Underline
+  ctx.fillStyle = '#7C3AED';
+  ctx.beginPath();
+  ctx.moveTo(width / 2, nameY + 7);
+  ctx.lineTo(width / 2 + 7, nameY + 14);
+  ctx.lineTo(width / 2, nameY + 21);
+  ctx.lineTo(width / 2 - 7, nameY + 14);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#D4AF37';
+  ctx.lineWidth = 1.5;
   ctx.stroke();
   ctx.restore();
 
   // =========================================================================
-  // 9. WORKSHOP DETAILS & APPRECIATION
+  // 7. WORKSHOP CITATION & DETAILS (AI Website Building Workshop)
   // =========================================================================
   ctx.save();
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
-  // "has actively participated in the workshop"
-  ctx.font = '600 20px "Plus Jakarta Sans", sans-serif';
-  ctx.fillStyle = '#334155';
+  // Attribution Lead-in
+  ctx.font = '500 21px "Plus Jakarta Sans", sans-serif';
+  ctx.fillStyle = '#475569';
   ctx.letterSpacing = '0.5px';
-  ctx.fillText('has actively participated in the workshop', width / 2, 635);
+  ctx.fillText('for successfully attending and actively participating in the intensive workshop on', width / 2, 660);
 
-  // Workshop Title: "AI for Real Opportunities"
-  // "AI for" in Bold Slate, "Real Opportunities" in Electric Purple
-  ctx.font = '900 46px "Plus Jakarta Sans", sans-serif';
-  const aiText = 'AI for ';
-  const roText = 'Real Opportunities';
-  const aiWidth = ctx.measureText(aiText).width;
-  const roWidth = ctx.measureText(roText).width;
-  const totalWorkshopW = aiWidth + roWidth;
-  const startWX = width / 2 - totalWorkshopW / 2;
-
-  ctx.textAlign = 'left';
-  ctx.fillStyle = '#0F172A';
-  ctx.fillText(aiText, startWX, 700);
-
-  const roGrad = ctx.createLinearGradient(startWX + aiWidth, 0, startWX + totalWorkshopW, 0);
-  roGrad.addColorStop(0, '#7C3AED');
-  roGrad.addColorStop(1, '#6D28D9');
-  ctx.fillStyle = roGrad;
-  ctx.fillText(roText, startWX + aiWidth, 700);
-
-  // Tagline: "Explore. Learn. Build. Grow."
-  ctx.textAlign = 'center';
-  ctx.font = '700 20px "Plus Jakarta Sans", sans-serif';
-  ctx.fillStyle = '#475569';
+  // Workshop Title (Primary Feature)
+  const workshopGrad = ctx.createLinearGradient(width / 2 - 350, 0, width / 2 + 350, 0);
+  workshopGrad.addColorStop(0, '#1E1B4B');
+  workshopGrad.addColorStop(0.5, '#7C3AED');
+  workshopGrad.addColorStop(1, '#1E1B4B');
+  ctx.fillStyle = workshopGrad;
+  ctx.font = '900 50px "Plus Jakarta Sans", sans-serif';
   ctx.letterSpacing = '1px';
-  ctx.fillText('Explore. Learn. Build. Grow.', width / 2, 755);
+  ctx.fillText(workshopName, width / 2, 730);
 
-  // Appreciation Message
-  ctx.font = '500 16.5px "Plus Jakarta Sans", sans-serif';
+  // Tagline: "Explore • Learn • Build • Grow"
+  ctx.font = '700 18px "Plus Jakarta Sans", sans-serif';
+  ctx.fillStyle = '#64748B';
+  ctx.letterSpacing = '2px';
+  ctx.fillText(WORKSHOP_CONFIG.tagline, width / 2, 785);
+
+  // Commendation Paragraph
+  ctx.font = '500 17px "Plus Jakarta Sans", sans-serif';
   ctx.fillStyle = '#475569';
-  ctx.fillText('We appreciate your curiosity, enthusiasm, and commitment to learning', width / 2, 805);
-  ctx.fillText('the skills that shape a smarter tomorrow.', width / 2, 832);
+  ctx.fillText(
+    'Demonstrating commendable dedication to mastering modern AI web development technologies,',
+    width / 2,
+    835
+  );
+  ctx.fillText(
+    'hands-on prompt craftsmanship, and future-ready digital implementation.',
+    width / 2,
+    865
+  );
   ctx.restore();
 
   // =========================================================================
-  // 10. OFFICIAL SCALLOPED EMBOSSED SEAL (Center Bottom)
+  // 8. EVENT METADATA STRIP: DATE & LOCATION
+  // =========================================================================
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  const metaBoxY = 930;
+  ctx.font = '700 16px "Plus Jakarta Sans", sans-serif';
+  ctx.fillStyle = '#0F172A';
+  ctx.letterSpacing = '1.5px';
+
+  const dateText = `DATE: ${workshopDate.toUpperCase()}`;
+  const locText = `VENUE: ${location.toUpperCase()}`;
+  const fullMeta = `${dateText}    •    ${locText}`;
+  ctx.fillText(fullMeta, width / 2, metaBoxY);
+
+  // Subtle separator line under metadata
+  ctx.strokeStyle = '#E2E8F0';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(width / 2 - 350, metaBoxY + 22);
+  ctx.lineTo(width / 2 + 350, metaBoxY + 22);
+  ctx.stroke();
+  ctx.restore();
+
+  // =========================================================================
+  // 9. OFFICIAL SCALLOPED EMBOSSED GOLD SEAL (Center Bottom)
   // =========================================================================
   ctx.save();
   const sealX = width / 2;
-  const sealY = 1070;
-  const sealRadius = 88;
+  const sealY = 1175;
+  const sealRadius = 95;
 
   // Soft seal shadow
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.18)';
-  ctx.shadowBlur = 24;
-  ctx.shadowOffsetY = 8;
+  ctx.shadowColor = 'rgba(15, 23, 42, 0.18)';
+  ctx.shadowBlur = 28;
+  ctx.shadowOffsetY = 10;
 
-  // Scalloped 32-point gold outer trim
+  // Scalloped 36-point Radiant Gold Outer Trim
   ctx.translate(sealX, sealY);
   ctx.fillStyle = '#D4AF37';
-  for (let i = 0; i < 32; i++) {
-    ctx.rotate((Math.PI * 2) / 32);
+  for (let i = 0; i < 36; i++) {
+    ctx.rotate((Math.PI * 2) / 36);
     ctx.beginPath();
-    ctx.moveTo(0, sealRadius + 10);
+    ctx.moveTo(0, sealRadius + 12);
     ctx.lineTo(10, sealRadius);
     ctx.lineTo(-10, sealRadius);
     ctx.closePath();
     ctx.fill();
   }
 
-  // Deep Purple Seal Body
+  // Deep Royal Indigo / Midnight Purple Seal Core
   ctx.shadowColor = 'transparent';
   ctx.beginPath();
   ctx.arc(0, 0, sealRadius, 0, Math.PI * 2);
-  const sealGrad = ctx.createRadialGradient(0, 0, 10, 0, 0, sealRadius);
+  const sealGrad = ctx.createRadialGradient(0, 0, 15, 0, 0, sealRadius);
   sealGrad.addColorStop(0, '#2E1065');
-  sealGrad.addColorStop(1, '#180838');
+  sealGrad.addColorStop(0.7, '#1E1233');
+  sealGrad.addColorStop(1, '#0F091E');
   ctx.fillStyle = sealGrad;
   ctx.fill();
 
-  // Gold Inner Ring
-  ctx.lineWidth = 3;
+  // Dual Gold Inner Filigree Rings
+  ctx.lineWidth = 3.5;
   ctx.strokeStyle = '#D4AF37';
   ctx.stroke();
 
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = 'rgba(212, 175, 55, 0.6)';
+  ctx.lineWidth = 1.2;
+  ctx.strokeStyle = 'rgba(212, 175, 55, 0.7)';
   ctx.beginPath();
-  ctx.arc(0, 0, sealRadius - 7, 0, Math.PI * 2);
+  ctx.arc(0, 0, sealRadius - 8, 0, Math.PI * 2);
   ctx.stroke();
 
-  // Embossed Seal Text
+  // Embossed Seal Inscriptions
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillStyle = '#FAF9F6';
-  ctx.font = '700 13px "Cinzel", serif';
+  ctx.font = '800 13px "Cinzel", serif';
   ctx.letterSpacing = '3px';
-  ctx.fillText('THE', 0, -26);
+  ctx.fillText('BRANDSWAY', 0, -28);
 
-  ctx.font = '800 17px "Cinzel", serif';
-  ctx.letterSpacing = '2px';
-  ctx.fillText('BRANDSWAY', 0, -2);
-
-  ctx.font = '600 11.5px "Plus Jakarta Sans", sans-serif';
+  ctx.font = '700 11px "Cinzel", serif';
   ctx.letterSpacing = '2px';
   ctx.fillStyle = '#D4AF37';
-  ctx.fillText('SKILL ACADEMY', 0, 22);
+  ctx.fillText('SKILL ACADEMY', 0, -6);
+
+  ctx.font = '900 18px "Plus Jakarta Sans", sans-serif';
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillText('★ ★ ★', 0, 16);
+
+  ctx.font = '700 9.5px "Plus Jakarta Sans", sans-serif';
+  ctx.letterSpacing = '1.5px';
+  ctx.fillStyle = '#E2E8F0';
+  ctx.fillText('OFFICIAL SEAL', 0, 36);
+
   ctx.restore();
 
   // =========================================================================
-  // 11. FOUNDER SIGNATURE (Yasir Ali, Founder) — Lower Left Area
+  // 10. FOUNDER & INSTRUCTOR SIGNATURE — Lower Left Area
   // =========================================================================
   ctx.save();
-  const sigX = 540;
-  const sigY = 1120;
+  const sigX = 520;
+  const sigY = 1200;
 
-  // Elegant Cursive Signature in dark ink
+  // Cursive Ink Signature
   ctx.textAlign = 'center';
-  ctx.font = '700 52px "Alex Brush", "Great Vibes", cursive';
+  ctx.font = '700 56px "Alex Brush", "Great Vibes", cursive';
   ctx.fillStyle = '#1E1B4B';
-  ctx.shadowColor = 'rgba(30, 27, 75, 0.12)';
+  ctx.shadowColor = 'rgba(30, 27, 75, 0.15)';
   ctx.shadowBlur = 4;
   ctx.fillText('Yasir Ali', sigX, sigY - 14);
 
-  // Signature rule line
+  // Signature Base Rule
   ctx.shadowColor = 'transparent';
   ctx.beginPath();
   ctx.lineWidth = 1.5;
-  ctx.strokeStyle = '#CBD5E1';
-  ctx.moveTo(sigX - 120, sigY);
-  ctx.lineTo(sigX + 120, sigY);
+  ctx.strokeStyle = '#94A3B8';
+  ctx.moveTo(sigX - 140, sigY);
+  ctx.lineTo(sigX + 140, sigY);
   ctx.stroke();
 
   // Printed Name
   ctx.font = '800 16px "Plus Jakarta Sans", sans-serif';
   ctx.fillStyle = '#0F172A';
-  ctx.letterSpacing = '1px';
+  ctx.letterSpacing = '1.5px';
   ctx.fillText('YASIR ALI', sigX, sigY + 22);
 
-  // Title
-  ctx.font = '700 12.5px "Plus Jakarta Sans", sans-serif';
-  ctx.fillStyle = '#7C3AED'; // BrandsWay Purple
+  // Role Title
+  ctx.font = '700 13px "Plus Jakarta Sans", sans-serif';
+  ctx.fillStyle = '#7C3AED';
   ctx.letterSpacing = '0.5px';
-  ctx.fillText('Founder, The BrandsWay Skill Academy', sigX, sigY + 42);
+  ctx.fillText('Founder & Instructor, Brandsway Skill Academy', sigX, sigY + 44);
+
+  ctx.font = '600 11px "Plus Jakarta Sans", sans-serif';
+  ctx.fillStyle = '#64748B';
+  ctx.fillText('Authorized Signatory', sigX, sigY + 62);
   ctx.restore();
 
   // =========================================================================
-  // 12. DIGITAL VERIFICATION QR CODE & CREDENTIAL ID — Lower Right Area
+  // 11. VERIFICATION QR CODE & CREDENTIAL ID — Lower Right Area
   // =========================================================================
   ctx.save();
-  const qrX = width - 540;
-  const qrY = 1120;
-  const qrSize = 105;
+  const qrX = width - 520;
+  const qrY = 1200;
+  const qrSize = 110;
 
   try {
     const qrDataUrl = await QRCode.toDataURL(verificationUrl, {
@@ -443,8 +507,8 @@ export async function renderCertificateCanvas(canvas, certData) {
       margin: 1,
       color: {
         dark: '#0F172A',
-        light: '#FFFFFF'
-      }
+        light: '#FFFFFF',
+      },
     });
 
     const qrImg = new Image();
@@ -454,83 +518,63 @@ export async function renderCertificateCanvas(canvas, certData) {
       qrImg.src = qrDataUrl;
     });
 
-    // Clean white card frame for QR code
+    // Elegant card frame for QR Code
     ctx.fillStyle = '#FFFFFF';
-    ctx.strokeStyle = '#E2E8F0';
+    ctx.strokeStyle = '#CBD5E1';
     ctx.lineWidth = 1.5;
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.06)';
-    ctx.shadowBlur = 12;
+    ctx.shadowColor = 'rgba(15, 23, 42, 0.08)';
+    ctx.shadowBlur = 14;
     ctx.shadowOffsetY = 4;
 
-    const qrCardPad = 6;
+    const qrPad = 8;
     ctx.beginPath();
-    ctx.roundRect(qrX - qrSize / 2 - qrCardPad, qrY - qrSize - 16 - qrCardPad, qrSize + qrCardPad * 2, qrSize + qrCardPad * 2, 8);
+    ctx.roundRect(
+      qrX - qrSize / 2 - qrPad,
+      qrY - qrSize - 18 - qrPad,
+      qrSize + qrPad * 2,
+      qrSize + qrPad * 2,
+      10
+    );
     ctx.fill();
     ctx.stroke();
 
-    ctx.drawImage(qrImg, qrX - qrSize / 2, qrY - qrSize - 16, qrSize, qrSize);
+    ctx.drawImage(qrImg, qrX - qrSize / 2, qrY - qrSize - 18, qrSize, qrSize);
 
     // QR Label
     ctx.textAlign = 'center';
-    ctx.font = '800 11px "Plus Jakarta Sans", sans-serif';
-    ctx.fillStyle = '#475569';
+    ctx.font = '800 11.5px "Plus Jakarta Sans", sans-serif';
+    ctx.fillStyle = '#334155';
     ctx.shadowColor = 'transparent';
     ctx.letterSpacing = '0.5px';
-    ctx.fillText('SCAN TO VERIFY ONLINE', qrX, qrY + 12);
+    ctx.fillText('SCAN TO VERIFY ONLINE', qrX, qrY + 16);
 
-    // Unique Certificate ID
+    // Certificate ID in high-visibility purple monospace
     ctx.font = '800 14px "Plus Jakarta Sans", monospace';
     ctx.fillStyle = '#7C3AED';
     ctx.letterSpacing = '1px';
-    ctx.fillText(`ID: ${certificateId}`, qrX, qrY + 30);
+    ctx.fillText(`ID: ${certificateId}`, qrX, qrY + 36);
 
     ctx.font = '600 10.5px "Plus Jakarta Sans", sans-serif';
-    ctx.fillStyle = '#94A3B8';
-    ctx.fillText('OFFICIAL DIGITAL CREDENTIAL', qrX, qrY + 46);
-
+    ctx.fillStyle = '#64748B';
+    ctx.fillText('OFFICIAL DIGITAL CREDENTIAL', qrX, qrY + 54);
   } catch (err) {
     console.error('QR rendering error on canvas:', err);
   }
   ctx.restore();
 
   // =========================================================================
-  // 13. BOTTOM-LEFT: "SKILLS TODAY / OPPORTUNITIES TOMORROW"
+  // 12. BOTTOM CERTIFICATE METADATA FOOTER
   // =========================================================================
   ctx.save();
-  ctx.textAlign = 'left';
-  ctx.font = '700 13px "Plus Jakarta Sans", sans-serif';
-  ctx.fillStyle = '#334155';
+  ctx.textAlign = 'center';
+  ctx.font = '600 11px "Plus Jakarta Sans", sans-serif';
+  ctx.fillStyle = '#94A3B8';
   ctx.letterSpacing = '2px';
-  ctx.fillText('SKILLS TODAY', 230, height - 150);
-  ctx.fillText('OPPORTUNITIES TOMORROW', 230, height - 128);
-
-  // Subtle rule line to the left
-  ctx.strokeStyle = '#94A3B8';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.moveTo(150, height - 140);
-  ctx.lineTo(215, height - 140);
-  ctx.stroke();
-  ctx.restore();
-
-  // =========================================================================
-  // 14. BOTTOM-RIGHT: "13 SEPT 2026 / ALIGARH, INDIA"
-  // =========================================================================
-  ctx.save();
-  ctx.textAlign = 'right';
-  ctx.font = '800 13px "Plus Jakarta Sans", sans-serif';
-  ctx.fillStyle = '#334155';
-  ctx.letterSpacing = '2px';
-  ctx.fillText(workshopDate, width - 260, height - 150);
-  ctx.fillText(location, width - 260, height - 128);
-
-  // Subtle rule line above
-  ctx.strokeStyle = '#94A3B8';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.moveTo(width - 420, height - 165);
-  ctx.lineTo(width - 260, height - 165);
-  ctx.stroke();
+  ctx.fillText(
+    'BRANDSWAY SKILL ACADEMY • TAMPER-PROOF DIGITAL WORKSHOP CERTIFICATE • OFFICIAL REGISTRY',
+    width / 2,
+    height - outerMargin - 24
+  );
   ctx.restore();
 }
 
@@ -556,10 +600,14 @@ export async function generateCertificatePDF(certData) {
     height: 595.28,
   });
 
-  pdfDoc.setTitle(`Certificate of Participation - ${certData.participantName}`);
-  pdfDoc.setAuthor('Yasir Ali, Founder - The BrandsWay Skill Academy');
-  pdfDoc.setSubject(`AI for Real Opportunities - Certificate ${certData.certificateId}`);
-  pdfDoc.setKeywords(['Certificate', 'The BrandsWay', 'AI Workshop', certData.certificateId, 'Yasir Ali']);
+  const participant = certData.participantName || 'Participant';
+  const workshop = certData.workshopName || WORKSHOP_CONFIG.workshopTitle;
+  const certId = certData.certificateId || 'BRW-AIWB-0001';
+
+  pdfDoc.setTitle(`Certificate of Participation - ${participant}`);
+  pdfDoc.setAuthor('Brandsway Skill Academy');
+  pdfDoc.setSubject(`${workshop} - Certificate ${certId}`);
+  pdfDoc.setKeywords(['Certificate', 'Brandsway Skill Academy', 'AI Website Building Workshop', certId, 'Yasir Ali']);
   pdfDoc.setCreationDate(new Date());
 
   const pdfBytes = await pdfDoc.save();
@@ -567,15 +615,25 @@ export async function generateCertificatePDF(certData) {
 }
 
 /**
- * Triggers direct browser download of the certificate PDF
+ * Triggers direct browser download of the certificate PDF with sanitized filename
  */
 export function downloadPDFBlob(blob, filename) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = filename || 'TheBrandsWay_Certificate.pdf';
+  link.download = filename || 'Brandsway_Certificate.pdf';
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+
+/**
+ * Opens the certificate PDF in a new browser tab.
+ * Crucial mobile fallback per PRD Section 3 if direct download is blocked.
+ */
+export function openPDFBlob(blob) {
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
 }

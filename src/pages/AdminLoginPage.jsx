@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, Lock, Mail, ArrowRight, AlertCircle, KeyRound, Sparkles } from 'lucide-react';
+import { Lock, Mail, ArrowRight, AlertCircle, KeyRound } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function AdminLoginPage() {
   const navigate = useNavigate();
-  const { login, user, isSupabaseConfigured } = useAuth();
+  const { login, user } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -39,14 +39,14 @@ export default function AdminLoginPage() {
         
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-12 h-12 rounded-2xl bg-brand-purple-600 flex items-center justify-center text-white mx-auto mb-3 shadow-purple-glow">
-            <KeyRound className="w-6 h-6" />
+          <div className="w-14 h-14 rounded-2xl bg-brand-purple-600 flex items-center justify-center text-white mx-auto mb-3 shadow-purple-glow">
+            <KeyRound className="w-7 h-7" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mb-1">
             Admin Portal Login
           </h1>
           <div className="text-xs text-brand-purple-700 font-bold uppercase tracking-widest">
-            The BrandsWay Skill Academy
+            Brandsway Skill Academy
           </div>
         </div>
 
@@ -97,7 +97,7 @@ export default function AdminLoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-brand-purple-600 to-indigo-700 text-white font-bold text-sm shadow-purple-glow hover:shadow-purple-glow-lg hover:brightness-105 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full mt-2 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-brand-purple-600 to-indigo-700 text-white font-bold text-sm shadow-purple-glow hover:shadow-purple-glow-lg hover:brightness-105 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               <span>{loading ? 'Authenticating...' : 'Sign In to Dashboard'}</span>
               <ArrowRight className="w-4 h-4" />

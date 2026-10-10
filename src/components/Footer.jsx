@@ -41,15 +41,15 @@ export default function Footer() {
               <Sparkles className="w-3.5 h-3.5 text-brand-purple-600" /> Official Workshop
             </h4>
             <p className="text-sm font-bold text-slate-900">
-              AI for Real Opportunities
+              AI Website Building Workshop
             </p>
             <div className="flex items-center gap-2 text-xs text-slate-600">
               <Calendar className="w-3.5 h-3.5 text-brand-purple-600" />
-              <span>13 September 2026</span>
+              <span>Sunday, 11 October 2026</span>
             </div>
             <div className="flex items-center gap-2 text-xs text-slate-600">
               <MapPin className="w-3.5 h-3.5 text-brand-purple-600" />
-              <span>Aligarh, India</span>
+              <span>Aligarh, Uttar Pradesh, India</span>
             </div>
           </div>
 

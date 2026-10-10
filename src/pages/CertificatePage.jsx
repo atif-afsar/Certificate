@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Award, Sparkles, ArrowRight, ShieldCheck, AlertCircle, CheckCircle2, User, Mail } from 'lucide-react';
+import { Award, Sparkles, ArrowRight, ShieldCheck, AlertCircle, CheckCircle2, User, Mail, Calendar, MapPin } from 'lucide-react';
 import { validateCertificateForm } from '../utils/validation';
 import { issueCertificate } from '../services/certificateService';
 import StepProgress from '../components/StepProgress';
@@ -17,6 +17,7 @@ export default function CertificatePage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setServerError('');
 
     const validation = validateCertificateForm(name, email);
@@ -31,7 +32,7 @@ export default function CertificatePage() {
 
     try {
       // Step 1: Saving details to database
-      await new Promise(r => setTimeout(r, 500));
+      await new Promise(r => setTimeout(r, 400));
       setCurrentStep(2);
 
       // Step 2: Issue / Fetch Certificate
@@ -42,10 +43,10 @@ export default function CertificatePage() {
       });
 
       setCurrentStep(3);
-      await new Promise(r => setTimeout(r, 400));
+      await new Promise(r => setTimeout(r, 350));
 
-      // Direct navigation to the official verified page for this certificate
-      navigate(`/verify/${result.certificate.certificate_id}`, {
+      // Direct navigation to the Success Screen with prominent PDF download option
+      navigate('/success', {
         state: {
           justIssued: true,
           certificate: result.certificate,
@@ -64,7 +65,7 @@ export default function CertificatePage() {
   return (
     <div className="min-h-[calc(100vh-5rem)] bg-mesh-white flex flex-col justify-center py-12 sm:py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       
-      {/* Decorative Floating Ambient Rings (Inspired by thebrandsway.com 3D graphics) */}
+      {/* Decorative Floating Ambient Rings */}
       <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[700px] h-[700px] bg-gradient-to-br from-brand-purple-200/40 via-purple-100/20 to-amber-100/30 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-20 -right-20 w-[450px] h-[450px] bg-brand-purple-100/50 rounded-full blur-3xl pointer-events-none" />
 
@@ -74,26 +75,35 @@ export default function CertificatePage() {
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-purple-50 border border-brand-purple-200 text-brand-purple-700 text-xs font-bold uppercase tracking-wider mb-4 shadow-sm">
             <Sparkles className="w-3.5 h-3.5 text-brand-purple-600" />
-            Official Workshop Certificate
+            Official Certificate Issuance Portal
           </div>
           
-          <div className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-            The Brands<span className="text-brand-purple-600">Way</span>
+          <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            Brandsway <span className="text-brand-purple-600">Skill Academy</span>
           </div>
           <div className="text-xs font-bold text-slate-500 tracking-widest uppercase mb-4">
-            Skill Academy
+            Certificate of Participation
           </div>
 
-          <h1 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight font-sans mb-3">
-            Your Certificate Is Ready
+          <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight font-sans mb-3">
+            Claim Your Certificate
           </h1>
           
-          <div className="inline-block px-3.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-800 font-bold text-sm sm:text-base mb-3">
-            Workshop: <span className="text-brand-purple-700">AI for Real Opportunities</span>
+          {/* Active Workshop Banner (PRD Section 1) */}
+          <div className="inline-flex flex-col sm:flex-row items-center gap-2 px-4 py-2 rounded-2xl bg-white border border-brand-purple-200/80 shadow-soft-sm text-slate-800 text-xs sm:text-sm font-semibold mb-3">
+            <span className="font-bold text-brand-purple-700">AI Website Building Workshop</span>
+            <span className="hidden sm:inline text-slate-300">•</span>
+            <span className="flex items-center gap-1 text-slate-600">
+              <Calendar className="w-3.5 h-3.5 text-brand-purple-600" /> Sunday, 11 October 2026
+            </span>
+            <span className="hidden sm:inline text-slate-300">•</span>
+            <span className="flex items-center gap-1 text-slate-600">
+              <MapPin className="w-3.5 h-3.5 text-brand-purple-600" /> Aligarh, UP, India
+            </span>
           </div>
 
           <p className="text-sm text-slate-600 max-w-md mx-auto leading-relaxed">
-            Enter your full name and email to register and instantly receive your official certificate of participation.
+            Enter your full name and registered email to generate and download your personalized certificate instantly.
           </p>
         </div>
 
@@ -108,7 +118,7 @@ export default function CertificatePage() {
               <div className="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 flex items-start gap-3 text-rose-800 text-sm">
                 <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-bold text-rose-900">Registration Error</p>
+                  <p className="font-bold text-rose-900">Registration Notice</p>
                   <p className="text-xs text-rose-700 mt-0.5">{serverError}</p>
                 </div>
               </div>
@@ -146,7 +156,7 @@ export default function CertificatePage() {
                   </p>
                 ) : (
                   <p className="mt-1.5 text-[11px] text-slate-500">
-                    Your name will be printed on the official certificate exactly as entered.
+                    Your name will appear on the official certificate exactly as entered.
                   </p>
                 )}
               </div>
@@ -181,7 +191,7 @@ export default function CertificatePage() {
                   </p>
                 ) : (
                   <p className="mt-1.5 text-[11px] text-slate-500">
-                    Your certificate will be securely registered to this email address.
+                    Your certificate and tamper-proof verification ID will be tied to this email.
                   </p>
                 )}
               </div>
@@ -190,9 +200,10 @@ export default function CertificatePage() {
               <button
                 type="submit"
                 id="generate-cert-btn"
-                className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-brand-purple-600 via-purple-600 to-indigo-700 text-white font-bold text-base shadow-purple-glow hover:shadow-purple-glow-lg hover:brightness-105 active:scale-[0.99] transition-all flex items-center justify-center gap-2 group cursor-pointer"
+                disabled={isSubmitting}
+                className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-brand-purple-600 via-purple-600 to-indigo-700 text-white font-bold text-base shadow-purple-glow hover:shadow-purple-glow-lg hover:brightness-105 active:scale-[0.99] transition-all flex items-center justify-center gap-2 group cursor-pointer disabled:opacity-50"
               >
-                <span>Generate My Certificate</span>
+                <span>Generate & Download Certificate</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
             </form>
@@ -204,17 +215,17 @@ export default function CertificatePage() {
           <div className="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-soft-sm">
             <ShieldCheck className="w-5 h-5 text-emerald-600 mx-auto mb-1.5" />
             <div className="text-xs font-bold text-slate-800">100% Verified</div>
-            <div className="text-[10px] text-slate-500">Tamper-proof</div>
+            <div className="text-[10px] text-slate-500">Tamper-Proof QR</div>
           </div>
           <div className="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-soft-sm">
             <Award className="w-5 h-5 text-brand-purple-600 mx-auto mb-1.5" />
             <div className="text-xs font-bold text-slate-800">Print Quality</div>
-            <div className="text-[10px] text-slate-500">A4 Landscape</div>
+            <div className="text-[10px] text-slate-500">A4 Landscape PDF</div>
           </div>
           <div className="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-soft-sm">
             <CheckCircle2 className="w-5 h-5 text-indigo-600 mx-auto mb-1.5" />
             <div className="text-xs font-bold text-slate-800">Instant Download</div>
-            <div className="text-[10px] text-slate-500">Direct PDF</div>
+            <div className="text-[10px] text-slate-500">No Wait / Direct PDF</div>
           </div>
         </div>
 

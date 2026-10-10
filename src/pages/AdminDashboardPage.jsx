@@ -28,7 +28,7 @@ import {
   importParticipantsFromCSV 
 } from '../services/participantService';
 import { issueCertificate } from '../services/certificateService';
-import { generateCertificatePDF, downloadPDFBlob } from '../utils/pdfGenerator';
+import { generateCertificatePDF, downloadPDFBlob, getSanitizedPDFFilename, WORKSHOP_CONFIG } from '../utils/pdfGenerator';
 
 export default function AdminDashboardPage() {
   const { user, loading: authLoading } = useAuth();
@@ -164,15 +164,18 @@ export default function AdminDashboardPage() {
     if (!p.certificate) return;
     try {
       showToast(`Rendering PDF for ${p.certificate.certificate_id}...`);
+      const participantName = p.certificate.participant_name || p.name;
       const pdfBlob = await generateCertificatePDF({
-        participantName: p.certificate.participant_name,
+        participantName,
         certificateId: p.certificate.certificate_id,
-        workshopName: 'AI for Real Opportunities',
-        workshopDate: '13 September 2026',
-        location: 'Aligarh, India',
+        workshopName: p.certificate.workshop_name || WORKSHOP_CONFIG.workshopTitle,
+        workshopDate: p.certificate.workshop_date || WORKSHOP_CONFIG.date,
+        location: p.certificate.location || WORKSHOP_CONFIG.location,
         verificationUrl: window.location.origin + '/verify/' + p.certificate.certificate_id
       });
-      downloadPDFBlob(pdfBlob, `${p.certificate.certificate_id}_${p.name.replace(/\s+/g, '_')}.pdf`);
+      const filename = getSanitizedPDFFilename(participantName);
+      downloadPDFBlob(pdfBlob, filename);
+      showToast(`Downloaded certificate for ${participantName}`);
     } catch (err) {
       showToast(`Download failed: ${err.message}`);
     }
@@ -254,7 +257,7 @@ export default function AdminDashboardPage() {
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            "AI for Real Opportunities" • 13 September 2026 • The BrandsWay Skill Academy
+            "AI Website Building Workshop" • Sunday, 11 October 2026 • Brandsway Skill Academy • Aligarh, UP, India
           </p>
         </div>
 
